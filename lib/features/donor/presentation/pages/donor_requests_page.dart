@@ -265,7 +265,9 @@ class _DonorRequestsPageState extends State<DonorRequestsPage>
         margin: const EdgeInsets.only(bottom: 15),
         padding: const EdgeInsets.all(15),
         decoration: BoxDecoration(
-          color: isCompleted ? Colors.green.withValues(alpha: 0.05) : AppColors.white,
+          color: isCompleted
+              ? Colors.green.withValues(alpha: 0.05)
+              : AppColors.white,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: isCompleted
@@ -307,13 +309,28 @@ class _DonorRequestsPageState extends State<DonorRequestsPage>
                   Row(
                     children: [
                       Expanded(
-                        child: Text(
-                          'Request #${request.id.substring(0, 8)}',
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            fontFamily: 'Inter',
-                            color: AppColors.black,
+                        child: RichText(
+                          text: TextSpan(
+                            children: [
+                              TextSpan(
+                                text: '${request.bloodGroup} ',
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  fontFamily: 'Inter',
+                                  color: AppColors.red,
+                                ),
+                              ),
+                              TextSpan(
+                                text: '- ${request.hospitalName}',
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  fontFamily: 'Inter',
+                                  color: AppColors.black,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
@@ -339,32 +356,65 @@ class _DonorRequestsPageState extends State<DonorRequestsPage>
                     ],
                   ),
                   const SizedBox(height: 8),
-                  Text(
-                    'Hospital Name: ${request.hospitalName}',
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontFamily: 'Inter',
-                      color: AppColors.grey,
-                    ),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.person_outline,
+                        size: 16,
+                        color: AppColors.grey,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Patient: ${request.patientName}',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontFamily: 'Inter',
+                          color: AppColors.grey,
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    'Blood Group: ${request.bloodGroup}',
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontFamily: 'Inter',
-                      color: AppColors.grey,
-                    ),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.location_on_outlined,
+                        size: 16,
+                        color: AppColors.grey,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${request.governate} - ${request.city}',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontFamily: 'Inter',
+                          color: AppColors.grey,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '${request.governate} - ${request.city}',
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontFamily: 'Inter',
-                      color: AppColors.grey,
+                  if (request.roomNumber != null &&
+                      request.roomNumber.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.meeting_room_outlined,
+                          size: 16,
+                          color: AppColors.grey,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Room: ${request.roomNumber}',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontFamily: 'Inter',
+                            color: AppColors.grey,
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
+                  ],
                 ],
               ),
             ),

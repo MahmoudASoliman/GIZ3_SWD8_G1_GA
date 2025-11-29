@@ -376,7 +376,27 @@ class _HospitalRequestsPageState extends State<HospitalRequestsPage>
                   const SizedBox(height: 6),
                   Text("Room No.: $roomNumber", style: _subTextStyle()),
                   Text("Patient Name: $patientName", style: _subTextStyle()),
-                  Text("Blood Group: $bloodGroup", style: _subTextStyle()),
+                  Row(
+                    children: [
+                      const Text(
+                        'Blood Group: ',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: AppColors.grey,
+                          fontFamily: 'Inter',
+                        ),
+                      ),
+                      Text(
+                        bloodGroup,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          color: AppColors.red,
+                          fontWeight: FontWeight.bold,
+                          fontFamily: 'Inter',
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),

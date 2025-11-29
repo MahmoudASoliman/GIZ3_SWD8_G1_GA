@@ -40,9 +40,11 @@ void main() async {
   final notificationService = getIt<NotificationService>();
   await notificationService.initialize();
 
-  // Listen for auth state changes to save FCM token
+  // Listen for auth state changes
   Supabase.instance.client.auth.onAuthStateChange.listen((data) async {
     final event = data.event;
+
+    // Save FCM token on sign in or token refresh
     if (event == AuthChangeEvent.signedIn ||
         event == AuthChangeEvent.tokenRefreshed) {
       try {
@@ -50,6 +52,12 @@ void main() async {
       } catch (e) {
         // Error saving FCM token silently handled
       }
+    }
+
+    // Handle JWT expiry - redirect to login
+    if (event == AuthChangeEvent.signedOut) {
+      // Navigate to auth page when session expires
+      appRouter.go('/auth');
     }
   });
 

@@ -196,7 +196,11 @@ class _HospitalRequestDetailsPageState
                 // Request Info Card
                 _buildInfoCard([
                   _buildInfoRow(AppStrings.patientName, request.patientName),
-                  _buildInfoRow(AppStrings.bloodGroup, request.bloodGroup),
+                  _buildInfoRow(
+                    AppStrings.bloodGroup,
+                    request.bloodGroup,
+                    isBloodGroup: true,
+                  ),
                   _buildInfoRow(
                     AppStrings.roomNumber,
                     request.roomNumber ?? '-',
@@ -671,7 +675,11 @@ class _HospitalRequestDetailsPageState
     );
   }
 
-  Widget _buildInfoRow(String label, String value) {
+  Widget _buildInfoRow(
+    String label,
+    String value, {
+    bool isBloodGroup = false,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
@@ -692,10 +700,11 @@ class _HospitalRequestDetailsPageState
             flex: 3,
             child: Text(
               value,
-              style: const TextStyle(
+              style: TextStyle(
                 fontWeight: FontWeight.w600,
-                fontSize: 14,
+                fontSize: isBloodGroup ? 16 : 14,
                 fontFamily: 'Poppins',
+                color: isBloodGroup ? AppColors.red : AppColors.black,
               ),
               textAlign: TextAlign.end,
             ),

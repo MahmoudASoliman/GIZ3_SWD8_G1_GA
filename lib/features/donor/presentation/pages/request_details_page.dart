@@ -103,41 +103,59 @@ class _RequestDetailsPageState extends State<RequestDetailsPage> {
             final request = state.request;
             final donorInfo = _getDonorInfo();
 
-            return SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Request Info Card - Using shared widget (includes header)
-                  RequestInfoCard(
-                    requestId: request.id,
-                    patientName: request.patientName,
-                    bloodGroup: request.bloodGroup,
-                    roomNumber: request.roomNumber,
-                    companionMobile: request.companionMobile,
-                    hospitalName: request.hospitalName,
-                    governate: request.governate,
-                    city: request.city,
-                    status: request.status.value,
-                  ),
-                  const SizedBox(height: 32),
+            return LayoutBuilder(
+              builder: (context, constraints) {
+                final screenWidth = constraints.maxWidth;
+                final isWideScreen = screenWidth > 600;
+                final horizontalPadding = isWideScreen
+                    ? screenWidth * 0.1
+                    : 20.0;
 
-                  // Donation Section - Using shared widget
-                  if (request.status.value == 'completed')
-                    const RequestCompletedWidget()
-                  else if (request.status.value == 'pending' &&
-                      donorInfo != null)
-                    DonationSection(
-                      requestId: request.id,
-                      patientName: request.patientName,
-                      bloodGroup: request.bloodGroup,
-                      hospitalName: request.hospitalName,
-                      companionMobile: request.companionMobile,
-                      donorInfo: donorInfo,
-                      onDonationComplete: () => Navigator.pop(context),
+                return SingleChildScrollView(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: horizontalPadding,
+                    vertical: 20,
+                  ),
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 500),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          // Request Info Card - Using shared widget (includes header)
+                          RequestInfoCard(
+                            requestId: request.id,
+                            patientName: request.patientName,
+                            bloodGroup: request.bloodGroup,
+                            roomNumber: request.roomNumber,
+                            companionMobile: request.companionMobile,
+                            hospitalName: request.hospitalName,
+                            governate: request.governate,
+                            city: request.city,
+                            status: request.status.value,
+                          ),
+                          const SizedBox(height: 32),
+
+                          // Donation Section - Using shared widget
+                          if (request.status.value == 'completed')
+                            const Center(child: RequestCompletedWidget())
+                          else if (request.status.value == 'pending' &&
+                              donorInfo != null)
+                            DonationSection(
+                              requestId: request.id,
+                              patientName: request.patientName,
+                              bloodGroup: request.bloodGroup,
+                              hospitalName: request.hospitalName,
+                              companionMobile: request.companionMobile,
+                              donorInfo: donorInfo,
+                              onDonationComplete: () => Navigator.pop(context),
+                            ),
+                        ],
+                      ),
                     ),
-                ],
-              ),
+                  ),
+                );
+              },
             );
           }
 
