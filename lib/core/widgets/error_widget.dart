@@ -5,8 +5,14 @@ import '../constants/app_colors.dart';
 class ErrorDisplayWidget extends StatelessWidget {
   final String message;
   final VoidCallback? onRetry;
+  final VoidCallback? onLogout;
 
-  const ErrorDisplayWidget({super.key, required this.message, this.onRetry});
+  const ErrorDisplayWidget({
+    super.key,
+    required this.message,
+    this.onRetry,
+    this.onLogout,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -45,6 +51,25 @@ class ErrorDisplayWidget extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(
                     horizontal: 32,
                     vertical: 12,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ],
+            if (onLogout != null) ...[
+              const SizedBox(height: 16),
+              OutlinedButton.icon(
+                onPressed: onLogout,
+                icon: const Icon(Icons.logout),
+                label: const Text('Logout & Re-login'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.red,
+                  side: const BorderSide(color: AppColors.red),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 10,
                   ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),

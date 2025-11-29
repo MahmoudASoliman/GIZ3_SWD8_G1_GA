@@ -67,7 +67,6 @@ class _DonorProfilePageState extends State<DonorProfilePage> {
             }
           },
           builder: (context, state) {
-
             // Handle initial state - wait for auth then load
             if (state is DonorInitial) {
               final authState = context.read<AuthCubit>().state;
@@ -83,8 +82,11 @@ class _DonorProfilePageState extends State<DonorProfilePage> {
             }
 
             if (state is DonorLoading) {
-              return const Center(
-                child: CircularProgressIndicator(color: AppColors.red),
+              return _LoadingWithLogout(
+                onLogout: () {
+                  context.read<AuthCubit>().logout();
+                  context.go('/auth');
+                },
               );
             }
 
@@ -96,23 +98,56 @@ class _DonorProfilePageState extends State<DonorProfilePage> {
                 );
               }
               return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(state.message, textAlign: TextAlign.center),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: () {
-                        final authState = context.read<AuthCubit>().state;
-                        if (authState is AuthAuthenticated) {
-                          context.read<DonorCubit>().loadProfile(
-                            authState.user.id,
-                          );
-                        }
-                      },
-                      child: const Text('Retry'),
-                    ),
-                  ],
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Icons.error_outline,
+                        size: 64,
+                        color: AppColors.red,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        state.message,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                      const SizedBox(height: 24),
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          _profileLoadAttempted = false;
+                          final authState = context.read<AuthCubit>().state;
+                          if (authState is AuthAuthenticated) {
+                            context.read<DonorCubit>().loadProfile(
+                              authState.user.id,
+                            );
+                          }
+                        },
+                        icon: const Icon(Icons.refresh),
+                        label: const Text('Retry'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.red,
+                          foregroundColor: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      // Logout button for JWT expired or auth errors
+                      OutlinedButton.icon(
+                        onPressed: () {
+                          context.read<AuthCubit>().logout();
+                          context.go('/auth');
+                        },
+                        icon: const Icon(Icons.logout),
+                        label: const Text('Logout & Re-login'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppColors.red,
+                          side: const BorderSide(color: AppColors.red),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               );
             }
@@ -276,6 +311,64 @@ class _DonorProfilePageState extends State<DonorProfilePage> {
             return const Center(child: Text('Loading...'));
           },
         ),
+      ),
+    );
+  }
+}
+
+/// Loading widget with logout button that appears after a delay
+class _LoadingWithLogout extends StatefulWidget {
+  final VoidCallback onLogout;
+
+  const _LoadingWithLogout({required this.onLogout});
+
+  @override
+  State<_LoadingWithLogout> createState() => _LoadingWithLogoutState();
+}
+
+class _LoadingWithLogoutState extends State<_LoadingWithLogout> {
+  bool _showLogout = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Show logout button after 5 seconds of loading
+    Future.delayed(const Duration(seconds: 5), () {
+      if (mounted) {
+        setState(() {
+          _showLogout = true;
+        });
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const CircularProgressIndicator(color: AppColors.red),
+          const SizedBox(height: 16),
+          const Text('Loading profile...'),
+          if (_showLogout) ...[
+            const SizedBox(height: 24),
+            const Text(
+              'Taking too long?',
+              style: TextStyle(color: Colors.grey),
+            ),
+            const SizedBox(height: 8),
+            OutlinedButton.icon(
+              onPressed: widget.onLogout,
+              icon: const Icon(Icons.logout),
+              label: const Text('Logout & Re-login'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.red,
+                side: const BorderSide(color: AppColors.red),
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }

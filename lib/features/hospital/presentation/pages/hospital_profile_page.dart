@@ -5,7 +5,6 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
 import '../../../../core/widgets/custom_button.dart';
 import '../../../../core/widgets/custom_profile_header.dart';
-import '../../../../core/widgets/loading_widget.dart';
 import '../../../../core/widgets/error_widget.dart';
 import '../../../auth/presentation/cubit/auth_cubit.dart';
 import '../../../auth/presentation/cubit/auth_state.dart';
@@ -55,7 +54,12 @@ class _HospitalProfilePageState extends State<HospitalProfilePage> {
           },
           builder: (context, state) {
             if (state is HospitalLoading) {
-              return const LoadingWidget(message: 'Loading profile...');
+              return _LoadingWithLogout(
+                onLogout: () {
+                  context.read<AuthCubit>().logout();
+                  context.go('/auth');
+                },
+              );
             }
 
             // Check if profile not found - show create profile form
@@ -74,6 +78,10 @@ class _HospitalProfilePageState extends State<HospitalProfilePage> {
                       authState.user.id,
                     );
                   }
+                },
+                onLogout: () {
+                  context.read<AuthCubit>().logout();
+                  context.go('/auth');
                 },
               );
             }
@@ -212,6 +220,64 @@ class _HospitalProfilePageState extends State<HospitalProfilePage> {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Loading widget with logout button that appears after a delay
+class _LoadingWithLogout extends StatefulWidget {
+  final VoidCallback onLogout;
+
+  const _LoadingWithLogout({required this.onLogout});
+
+  @override
+  State<_LoadingWithLogout> createState() => _LoadingWithLogoutState();
+}
+
+class _LoadingWithLogoutState extends State<_LoadingWithLogout> {
+  bool _showLogout = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Show logout button after 5 seconds of loading
+    Future.delayed(const Duration(seconds: 5), () {
+      if (mounted) {
+        setState(() {
+          _showLogout = true;
+        });
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const CircularProgressIndicator(color: AppColors.red),
+          const SizedBox(height: 16),
+          const Text('Loading profile...'),
+          if (_showLogout) ...[
+            const SizedBox(height: 24),
+            const Text(
+              'Taking too long?',
+              style: TextStyle(color: Colors.grey),
+            ),
+            const SizedBox(height: 8),
+            OutlinedButton.icon(
+              onPressed: widget.onLogout,
+              icon: const Icon(Icons.logout),
+              label: const Text('Logout & Re-login'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.red,
+                side: const BorderSide(color: AppColors.red),
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }
