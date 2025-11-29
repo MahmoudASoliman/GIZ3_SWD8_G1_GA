@@ -1,0 +1,15 @@
+# Supabase Files
+.env
+
+# Firebase generated files
+firebase_options.dart
+google-services.json
+GoogleService-Info.plist
+
+# IDE
+.vscode/
+.idea/
+
+# Supabase local
+.branches/
+supabase/.temp/
