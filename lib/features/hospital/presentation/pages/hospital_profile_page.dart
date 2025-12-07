@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
 import '../../../../core/widgets/custom_button.dart';
@@ -31,6 +32,32 @@ class _HospitalProfilePageState extends State<HospitalProfilePage> {
       final authState = context.read<AuthCubit>().state;
       if (authState is AuthAuthenticated) {
         context.read<HospitalCubit>().loadProfile(authState.user.id);
+      }
+    }
+  }
+
+  Future<void> _openLocationLink(String url) async {
+    if (url.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No location link available')),
+      );
+      return;
+    }
+
+    // Make sure URL has proper scheme
+    String finalUrl = url;
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      finalUrl = 'https://$url';
+    }
+
+    final uri = Uri.parse(finalUrl);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not open location link')),
+        );
       }
     }
   }
@@ -92,7 +119,13 @@ class _HospitalProfilePageState extends State<HospitalProfilePage> {
                   ? state.profile
                   : (state as HospitalProfileCreated).profile;
 
-              return _buildProfileView(context, profile);
+              // Get email from auth state
+              final currentAuthState = context.read<AuthCubit>().state;
+              final email = currentAuthState is AuthAuthenticated
+                  ? currentAuthState.user.email
+                  : '';
+
+              return _buildProfileView(context, profile, email);
             }
 
             // Default - show create profile form
@@ -103,7 +136,11 @@ class _HospitalProfilePageState extends State<HospitalProfilePage> {
     );
   }
 
-  Widget _buildProfileView(BuildContext context, dynamic profile) {
+  Widget _buildProfileView(
+    BuildContext context,
+    dynamic profile,
+    String email,
+  ) {
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -159,10 +196,7 @@ class _HospitalProfilePageState extends State<HospitalProfilePage> {
                           SizedBox(height: 10),
                           Text('Email', style: AppTextStyles.infoTextStyle),
                           SizedBox(height: 10),
-                          Text(
-                            'Location Link',
-                            style: AppTextStyles.infoTextStyle,
-                          ),
+                          Text('Location', style: AppTextStyles.infoTextStyle),
                         ],
                       ),
                     ),
@@ -185,13 +219,24 @@ class _HospitalProfilePageState extends State<HospitalProfilePage> {
                         ),
                         const SizedBox(height: 10),
                         Text(
-                          profile.address,
+                          email,
                           style: AppTextStyles.infoTextStyle,
+                          overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 10),
-                        const Text(
-                          'View Location',
-                          style: AppTextStyles.infoTextStyle,
+                        GestureDetector(
+                          onTap: () => _openLocationLink(profile.address),
+                          child: const Text(
+                            'View Location',
+                            style: TextStyle(
+                              color: AppColors.red,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              fontFamily: 'Poppins',
+                              decoration: TextDecoration.underline,
+                              decorationColor: AppColors.red,
+                            ),
+                          ),
                         ),
                       ],
                     ),

@@ -23,6 +23,9 @@ class RequestDetailsPage extends StatefulWidget {
 }
 
 class _RequestDetailsPageState extends State<RequestDetailsPage> {
+  // Store the request locally so it persists across state changes
+  dynamic _cachedRequest;
+
   @override
   void initState() {
     super.initState();
@@ -78,7 +81,10 @@ class _RequestDetailsPageState extends State<RequestDetailsPage> {
       ),
       body: BlocConsumer<DonorCubit, DonorState>(
         listener: (context, state) {
-          if (state is DonorRequestAccepted) {
+          if (state is DonorRequestDetailsLoaded) {
+            // Cache the request when loaded
+            _cachedRequest = state.request;
+          } else if (state is DonorRequestAccepted) {
             CustomSnackBar.showSuccess(context, state.message);
             Navigator.pop(context);
           } else if (state is DonorError) {
@@ -86,11 +92,16 @@ class _RequestDetailsPageState extends State<RequestDetailsPage> {
           }
         },
         builder: (context, state) {
-          if (state is DonorLoading) {
+          // Use cached request if available
+          final request = state is DonorRequestDetailsLoaded
+              ? state.request
+              : _cachedRequest;
+
+          if (state is DonorLoading && request == null) {
             return const LoadingWidget(message: 'Loading details...');
           }
 
-          if (state is DonorError) {
+          if (state is DonorError && request == null) {
             return ErrorDisplayWidget(
               message: state.message,
               onRetry: () {
@@ -99,8 +110,7 @@ class _RequestDetailsPageState extends State<RequestDetailsPage> {
             );
           }
 
-          if (state is DonorRequestDetailsLoaded) {
-            final request = state.request;
+          if (request != null) {
             final donorInfo = _getDonorInfo();
 
             return LayoutBuilder(
@@ -133,6 +143,7 @@ class _RequestDetailsPageState extends State<RequestDetailsPage> {
                             governate: request.governate,
                             city: request.city,
                             status: request.status.value,
+                            hospitalLocationLink: request.hospitalLocationLink,
                           ),
                           const SizedBox(height: 32),
 

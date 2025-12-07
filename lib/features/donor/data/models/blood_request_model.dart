@@ -6,6 +6,7 @@ class BloodRequestModel {
   final String id;
   final String hospitalId;
   final String hospitalName;
+  final String? hospitalLocationLink;
   final String patientName;
   final String bloodGroup;
   final String? roomNumber;
@@ -22,6 +23,7 @@ class BloodRequestModel {
     required this.id,
     required this.hospitalId,
     required this.hospitalName,
+    this.hospitalLocationLink,
     required this.patientName,
     required this.bloodGroup,
     this.roomNumber,
@@ -41,6 +43,7 @@ class BloodRequestModel {
       id: json['id'] as String,
       hospitalId: json['hospital_id'] as String,
       hospitalName: json['hospitals']?['name'] as String? ?? 'Unknown Hospital',
+      hospitalLocationLink: json['hospitals']?['address'] as String?,
       patientName: json['patient_name'] as String,
       bloodGroup: json['blood_group'] as String,
       roomNumber: json['room_number'] as String?,
@@ -77,6 +80,7 @@ class BloodRequestModel {
       id: id,
       hospitalId: hospitalId,
       hospitalName: hospitalName,
+      hospitalLocationLink: hospitalLocationLink,
       patientName: patientName,
       bloodGroup: bloodGroup,
       roomNumber: roomNumber,

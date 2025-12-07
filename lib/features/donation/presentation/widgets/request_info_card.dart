@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/constants/app_colors.dart';
 
 /// Reusable request info card widget
@@ -13,6 +14,7 @@ class RequestInfoCard extends StatelessWidget {
   final String governate;
   final String city;
   final String status;
+  final String? hospitalLocationLink;
 
   const RequestInfoCard({
     super.key,
@@ -25,7 +27,22 @@ class RequestInfoCard extends StatelessWidget {
     required this.governate,
     required this.city,
     required this.status,
+    this.hospitalLocationLink,
   });
+
+  Future<void> _openLocation() async {
+    if (hospitalLocationLink == null || hospitalLocationLink!.isEmpty) return;
+
+    String url = hospitalLocationLink!;
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      url = 'https://$url';
+    }
+
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -74,7 +91,7 @@ class RequestInfoCard extends StatelessWidget {
               _buildInfoRow('Blood Group', bloodGroup, isBloodGroup: true),
               _buildInfoRow('Room Number', roomNumber ?? '-'),
               _buildInfoRow('Companion Number', companionMobile),
-              _buildInfoRow('Hospital Name', hospitalName),
+              _buildHospitalRow(),
               _buildInfoRow('Governate', governate),
               _buildInfoRow('City', city),
             ],
@@ -117,6 +134,68 @@ class RequestInfoCard extends StatelessWidget {
           fontWeight: FontWeight.bold,
           fontSize: 14,
         ),
+      ),
+    );
+  }
+
+  Widget _buildHospitalRow() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(
+            flex: 2,
+            child: Text(
+              'Hospital Name',
+              style: TextStyle(
+                color: AppColors.grey,
+                fontSize: 14,
+                fontFamily: 'Poppins',
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 3,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Flexible(
+                  child: Text(
+                    hospitalName,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                      fontFamily: 'Poppins',
+                      color: AppColors.black,
+                    ),
+                    textAlign: TextAlign.end,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                if (hospitalLocationLink != null &&
+                    hospitalLocationLink!.isNotEmpty) ...[
+                  const SizedBox(width: 8),
+                  GestureDetector(
+                    onTap: _openLocation,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: AppColors.red.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: const Icon(
+                        Icons.location_on,
+                        color: AppColors.red,
+                        size: 18,
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

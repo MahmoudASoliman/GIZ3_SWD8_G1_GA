@@ -146,6 +146,7 @@ class HospitalRemoteDataSourceImpl implements HospitalRemoteDataSource {
     required String city,
   }) async {
     try {
+      // First, insert the request
       final data = await _supabase
           .from(ApiConstants.requestsTable)
           .insert({
@@ -164,30 +165,73 @@ class HospitalRemoteDataSourceImpl implements HospitalRemoteDataSource {
 
       final request = HospitalRequestModel.fromJson(data);
 
-      // Send notification to matching donors via Edge Function
-      try {
-        await _supabase.functions.invoke(
-          'send-notification',
-          body: {
-            'type': 'blood_request',
-            'blood_group': bloodGroup,
-            'hospital_name': hospitalName,
-            'governate': governate,
-            'city': city,
-            'patient_name': patientName,
-            'urgency_level': 'high',
-            'request_id': request.id,
-          },
-        );
-      } catch (e) {
-        // Silently handle notification failure - don't fail the request creation
-      }
+      // Send notification to matching donors via Edge Function (fire and forget)
+      // This is done in a separate try-catch to not affect the request creation
+      _sendNotificationAsync(
+        bloodGroup: bloodGroup,
+        hospitalName: hospitalName,
+        governate: governate,
+        city: city,
+        patientName: patientName,
+        requestId: request.id,
+      );
 
       return request;
+    } on PostgrestException catch (e) {
+      // Check if this is a notification queue error but request was created
+      if (e.message.contains('http_request_queue')) {
+        // The request might have been created, try to fetch the latest
+        try {
+          final latestRequest = await _supabase
+              .from(ApiConstants.requestsTable)
+              .select()
+              .eq('hospital_id', hospitalId)
+              .eq('patient_name', patientName)
+              .eq('blood_group', bloodGroup)
+              .order('created_at', ascending: false)
+              .limit(1)
+              .maybeSingle();
+
+          if (latestRequest != null) {
+            return HospitalRequestModel.fromJson(latestRequest);
+          }
+        } catch (_) {}
+      }
+      throw app_exceptions.ServerException(
+        'Failed to create blood request: ${e.message}',
+      );
     } catch (e) {
       throw app_exceptions.ServerException(
         'Failed to create blood request: ${e.toString()}',
       );
+    }
+  }
+
+  /// Send notification asynchronously without blocking
+  Future<void> _sendNotificationAsync({
+    required String bloodGroup,
+    required String hospitalName,
+    required String governate,
+    required String city,
+    required String patientName,
+    required String requestId,
+  }) async {
+    try {
+      await _supabase.functions.invoke(
+        'send-notification',
+        body: {
+          'type': 'blood_request',
+          'blood_group': bloodGroup,
+          'hospital_name': hospitalName,
+          'governate': governate,
+          'city': city,
+          'patient_name': patientName,
+          'urgency_level': 'high',
+          'request_id': requestId,
+        },
+      );
+    } catch (e) {
+      // Silently handle notification failure - don't fail the request creation
     }
   }
 
@@ -282,13 +326,13 @@ class HospitalRemoteDataSourceImpl implements HospitalRemoteDataSource {
           .from(ApiConstants.requestsTable)
           .select('id, patient_name, blood_group, status')
           .eq('id', requestId);
-      
+
       if (checkData.isEmpty) {
         throw app_exceptions.ServerException(
           'Request not found with ID: $requestId',
         );
       }
-      
+
       final data = await _supabase
           .from(ApiConstants.requestsTable)
           .select('*, hospitals(name, governate, city, address, mobile)')

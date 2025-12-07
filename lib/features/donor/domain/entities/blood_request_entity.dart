@@ -6,6 +6,7 @@ class BloodRequestEntity extends Equatable {
   final String id;
   final String hospitalId;
   final String hospitalName;
+  final String? hospitalLocationLink;
   final String patientName;
   final String bloodGroup;
   final String? roomNumber;
@@ -22,6 +23,7 @@ class BloodRequestEntity extends Equatable {
     required this.id,
     required this.hospitalId,
     required this.hospitalName,
+    this.hospitalLocationLink,
     required this.patientName,
     required this.bloodGroup,
     this.roomNumber,
@@ -40,6 +42,7 @@ class BloodRequestEntity extends Equatable {
     id,
     hospitalId,
     hospitalName,
+    hospitalLocationLink,
     patientName,
     bloodGroup,
     roomNumber,

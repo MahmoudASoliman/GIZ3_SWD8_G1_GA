@@ -76,7 +76,6 @@ class DonationRemoteDataSourceImpl implements DonationRemoteDataSource {
 
       // Send notification to hospital about new donation offer
       try {
-
         // Get request details to find hospital
         final requestData = await _supabaseClient
             .from('blood_requests')
@@ -210,7 +209,6 @@ class DonationRemoteDataSourceImpl implements DonationRemoteDataSource {
 
       // Check if OTP matches
       if (donation['otp_code'] == otpCode) {
-
         // Update donation status to completed
         await _supabaseClient
             .from('donations')
@@ -238,7 +236,6 @@ class DonationRemoteDataSourceImpl implements DonationRemoteDataSource {
 
         // Send notification to hospital
         try {
-
           // Get request details to find hospital
           final requestData = await _supabaseClient
               .from('blood_requests')

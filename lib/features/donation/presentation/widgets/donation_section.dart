@@ -74,8 +74,8 @@ class _DonationSectionWidgetState extends State<DonationSectionWidget> {
       listener: (context, state) {
         if (state is DonationOfferCreated) {
           setState(() {
-          _myDonation = state.donation;
-        });
+            _myDonation = state.donation;
+          });
           CustomSnackBar.showSuccess(context, AppStrings.donationOfferCreated);
         } else if (state is DonationsLoaded) {
           final myDonation = state.donations
@@ -110,6 +110,7 @@ class _DonationSectionWidgetState extends State<DonationSectionWidget> {
         if (_myDonation != null) {
           return DonationOfferSentWidget(
             onEnterOtp: () => _showOtpDialog(context, _myDonation!.id),
+            hospitalPhone: widget.companionMobile,
           );
         }
 

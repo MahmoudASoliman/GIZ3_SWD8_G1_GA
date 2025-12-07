@@ -1,12 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/constants/app_colors.dart';
 
 /// Reusable donation offer sent section
 /// Shows after donor/hospital sends a donation offer
 class DonationOfferSentWidget extends StatelessWidget {
   final VoidCallback onEnterOtp;
+  final String? hospitalPhone;
 
-  const DonationOfferSentWidget({super.key, required this.onEnterOtp});
+  const DonationOfferSentWidget({
+    super.key,
+    required this.onEnterOtp,
+    this.hospitalPhone,
+  });
+
+  Future<void> _callHospital() async {
+    if (hospitalPhone == null || hospitalPhone!.isEmpty) return;
+
+    final uri = Uri.parse('tel:$hospitalPhone');
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,20 +46,31 @@ class DonationOfferSentWidget extends StatelessWidget {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.blue.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: const Text(
-              'Contact hospital to get the code',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                color: Colors.blue,
+          GestureDetector(
+            onTap: hospitalPhone != null && hospitalPhone!.isNotEmpty
+                ? _callHospital
+                : null,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: AppColors.red.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(20),
               ),
-              textAlign: TextAlign.center,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.phone, size: 14, color: AppColors.red),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Contact Hospital',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.red,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
           const SizedBox(height: 20),

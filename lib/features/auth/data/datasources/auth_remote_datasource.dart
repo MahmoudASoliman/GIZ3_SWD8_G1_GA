@@ -141,6 +141,19 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   @override
   Future<void> signOut() async {
     try {
+      // Clear FCM token before signing out
+      final currentUser = _supabase.auth.currentUser;
+      if (currentUser != null) {
+        try {
+          await _supabase
+              .from(ApiConstants.usersTable)
+              .update({'fcm_token': null})
+              .eq('id', currentUser.id);
+        } catch (_) {
+          // Ignore error if can't clear FCM token
+        }
+      }
+
       await _supabase.auth.signOut();
     } catch (e) {
       throw app_exceptions.AuthException('Logout failed: ${e.toString()}');
